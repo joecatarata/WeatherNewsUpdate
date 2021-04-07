@@ -33,8 +33,11 @@ def get_schedule():
     }
     page = requests.get("http://smtgvs.weathernews.jp/a/solive_timetable/timetable.json")
     timetable=page.json()
-    outstring = ""
     embed = discord.Embed(title='WeatherNewsJP Schedule')
+    timestring = ""
+    titlestring = ""
+    casterstring = ""
+    outstring = ""
     for schedule in timetable:
         test = ""
         strsplit = str(schedule).split(",")
@@ -64,12 +67,16 @@ def get_schedule():
         outstring += "| " + translator.translate(title, lang_tgt='en') + " "
         outstring += "| Newscaster: " + caster + " "
         outstring += "\n"
+
+        timestring += time + "\n"
+        titlestring += translator.translate(title, lang_tgt='en') + "\n"
+        casterstring += caster + "\n"
         # print(strsplit)
 
     
-        embed.add_field(name = 'Time', value= time, inline = True)
-        embed.add_field(name = 'Title', value = translator.translate(title, lang_tgt='en'), inline = True)
-        embed.add_field(name = 'Newscaster', value = caster, inline = True)
+    embed.add_field(name = 'Time', value= timestring, inline = True)
+    embed.add_field(name = 'Title', value = titlestring, inline = True)
+    embed.add_field(name = 'Newscaster', value = casterstring, inline = True)
 
     return embed
 
