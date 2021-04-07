@@ -34,6 +34,7 @@ def get_schedule():
     page = requests.get("http://smtgvs.weathernews.jp/a/solive_timetable/timetable.json")
     timetable=page.json()
     outstring = ""
+    embed = discord.Embed(title='WeatherNewsJP Schedule')
     for schedule in timetable:
         test = ""
         strsplit = str(schedule).split(",")
@@ -56,19 +57,26 @@ def get_schedule():
         # if caster in thumbnails:
         #     caster += " " + thumbnails[caster]
         print(caster)
-        # Staging for output
         translator = google_translator()
+        # Staging for output string
+        
         outstring += "Time schedule: " + time + " "
         outstring += "| " + translator.translate(title, lang_tgt='en') + " "
         outstring += "| Newscaster: " + caster + " "
         outstring += "\n"
         # print(strsplit)
 
-    return outstring
+    
+        embed.add_field(name = 'Time', value= time, inline = True)
+        embed.add_field(name = 'Title', value = translator.translate(title, lang_tgt='en'), inline = True)
+        embed.add_field(name = 'Newscaster', value = caster, inline = True)
+
+    return embed
 
 #https://translate.google.com/translate?hl=&sl=ja&tl=en&u=https://weathernews.jp/s/solive24/timetable.html
-@bot.command(name='schedule')
+@bot.command(name='schedule', help_command="hi")
 async def schedule(ctx):
-    await ctx.send(get_schedule())
+    # await ctx.send(get_schedule())
+    await ctx.send(embed=get_schedule())
 
 bot.run(TOKEN)
