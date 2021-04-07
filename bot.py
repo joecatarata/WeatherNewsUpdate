@@ -1,9 +1,10 @@
 # bot.py
 import os
-import random
+import requests
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
 
 load_dotenv()
 TOKEN = os.getenv('WEATHERBOTTOKEN')
@@ -16,23 +17,39 @@ async def on_ready():
 
 bot = commands.Bot(command_prefix='!@#')
 
-@bot.command(name='99')
-async def nine_nine(ctx):
-    brooklyn_99_quotes = [
-        'I\'m the human form of the 💯 emoji.',
-        'Bingpot!',
-        (
-            'Cool. Cool cool cool cool cool cool cool, '
-            'no doubt no doubt no doubt no doubt.'
-        ),
-    ]
+def get_schedule():
+    page = requests.get("http://smtgvs.weathernews.jp/a/solive_timetable/timetable.json")
+    timetable=page.json()
+    outstring = ""
+    for schedule in timetable:
+        test = ""
+        strsplit = str(schedule).split(",")
 
-    response = random.choice(brooklyn_99_quotes)
-    await ctx.send(response)
+        # Removing unwanted characters
+        for count, string in enumerate(strsplit):
+            string = string.replace(' ', '')
+            string = string.replace('{', '')
+            string = string.replace('}', '')
+            string = string.replace('\'', '')
+            strsplit[count] = string
 
+        # Staging for output
+        outstring += "Hour: " + strsplit[0].split(":")[1] + ":" + strsplit[0].split(":")[2] + " "
+        outstring += "Title: " + strsplit[1].split(":")[1] + " "
+        outstring += "Caster: " + strsplit[2].split(":")[1] + " "
+        outstring += "\n"
+        # print(strsplit)
+
+    return outstring
 #https://translate.google.com/translate?hl=&sl=ja&tl=en&u=https://weathernews.jp/s/solive24/timetable.html
-@bot.command(name='timetable')
+@bot.command(name='schedule')
 async def nine_nine(ctx):
-    await ctx.send("It works!")
+    # page = requests.get("http://smtgvs.weathernews.jp/a/solive_timetable/timetable.json")
+    # print(page.content)
+
+    # soup = BeautifulSoup(page.content)
+    # print(soup.prettify())
+    # print(outstring)
+    await ctx.send(get_schedule())
 
 bot.run(TOKEN)
