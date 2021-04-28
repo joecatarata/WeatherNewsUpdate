@@ -14,19 +14,19 @@ load_dotenv()
 TOKEN = os.getenv('WEATHERBOTTOKEN')
 
 
-INTERVAL = 1
+INTERVAL = 2
 CHANNEL = 829244449195294731
 MESSAGE = "Test interval message"
 
 
 bot = commands.Bot(command_prefix='!@#')
 
-async def list_guilds():
-    await bot.wait_until_ready()
-    print("** Weather Bot is Online **")
-    for guild in bot.guilds:
-        print('Active guilds: ' + str(guild.name))
-    await asyncio.sleep(600)
+# async def list_guilds():
+#     await bot.wait_until_ready()
+#     print("** Weather Bot is Online **")
+#     for guild in bot.guilds:
+#         print('Active guilds: ' + str(guild.name))
+#     await asyncio.sleep(600)
 
 async def send_interval_message():
     await bot.wait_until_ready()
@@ -46,12 +46,10 @@ async def send_interval_message():
         seconds_until_target = (target_time - now).total_seconds()
         # await bot.get_channel(channel).send(message)
         print("Now: " + str(now) + " Target time: " + str(target_time) + " Seconds target: " + str(seconds_until_target))
-        await asyncio.sleep(seconds_until_target)
+        await asyncio.sleep(interval)
         await schedule(bot.get_channel(channel))
-        
-bot.loop.create_task(list_guilds())
 
-
+# bot.loop.create_task(list_guilds())
 # print the active bot details to console 
 @bot.event
 async def on_ready():
@@ -84,7 +82,7 @@ def get_schedule():
     }
     page = requests.get("http://smtgvs.weathernews.jp/a/solive_timetable/timetable.json")
     timetable=page.json()
-    embed = discord.Embed(title='WeatherNewsJP Schedule')
+    embed = discord.Embed(title='Weather News Japan Live Stream Schedule')
     timestring = ""
     titlestring = ""
     casterstring = ""
@@ -146,4 +144,3 @@ async def schedule(ctx):
     await ctx.send(link)
 # bot.loop.create_task(background_task())
 bot.run(TOKEN)
-
