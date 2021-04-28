@@ -46,9 +46,9 @@ async def send_interval_message():
         seconds_until_target = (target_time - now).total_seconds()
         # await bot.get_channel(channel).send(message)
         print("Now: " + str(now) + " Target time: " + str(target_time) + " Seconds target: " + str(seconds_until_target))
-        await schedule(bot.get_channel(channel))
         await asyncio.sleep(seconds_until_target)
-
+        await schedule(bot.get_channel(channel))
+        
 bot.loop.create_task(list_guilds())
 
 
