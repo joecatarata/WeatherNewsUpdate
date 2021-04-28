@@ -14,7 +14,7 @@ load_dotenv()
 TOKEN = os.getenv('WEATHERBOTTOKEN')
 
 
-INTERVAL = 720
+INTERVAL = 21600
 CHANNEL = 829244449195294731
 MESSAGE = "Test interval message"
 
