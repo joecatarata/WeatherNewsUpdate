@@ -8,67 +8,75 @@ from bs4 import BeautifulSoup
 from google_trans_new import google_translator  
 from datetime import datetime, time, timedelta
 import asyncio
+import pytz
 
 load_dotenv()
 TOKEN = os.getenv('WEATHERBOTTOKEN')
 
-client = discord.Client()
 
-@client.event
-async def on_ready():
-    print(f'{client.user} has connected to Discord!')
+INTERVAL = 1
+CHANNEL = 354232146891898882
+MESSAGE = "Test interval message"
+
 
 bot = commands.Bot(command_prefix='!@#')
 
-# WHEN = time(12, 20, 00)  # 6:00 PM
-# channel_id = 829325798002393129 # Put your channel id here
+async def list_guilds():
+    await bot.wait_until_ready()
+    print("** Weather Bot is Online **")
+    for guild in bot.guilds:
+        print('Active guilds: ' + str(guild.name))
+    await asyncio.sleep(600)
 
-# async def called_once_a_day():  # Fired every day
-#     await bot.wait_until_ready()  # Make sure your guild cache is ready so the channel can be found via get_channel
-#     channel = bot.get_channel(channel_id) # Note: It's more efficient to do bot.get_guild(guild_id).get_channel(channel_id) as there's less looping involved, but just get_channel still works fine
-#     await channel.send(embed=get_schedule)
+async def send_interval_message():
+    await bot.wait_until_ready()
+    channel = CHANNEL
+    interval = INTERVAL
+    message = MESSAGE
+    WHEN = time(16, 0, 0) # UTC+0 but midnight in UTC+8 cause I don't know how to change offset :(
+    now = datetime.utcnow()
+    if now.time() > WHEN:  # Make sure loop doesn't start after {WHEN} as then it will send immediately the first time as negative seconds will make the sleep yield instantly
+        tomorrow = datetime.combine(now.date() + timedelta(days=1), time(0))
+        seconds = (tomorrow - now).total_seconds()  # Seconds until tomorrow (midnight)
+        await asyncio.sleep(seconds) 
+    # print("Sending interval message...")
+    while True:
+        now = datetime.utcnow()
+        target_time = datetime.combine(now.date(), WHEN)
+        seconds_until_target = (target_time - now).total_seconds()
+        # await bot.get_channel(channel).send(message)
+        print("Now: " + str(now) + " Target time: " + str(target_time) + " Seconds target: " + str(seconds_until_target))
+        await schedule(bot.get_channel(channel))
+        await asyncio.sleep(seconds_until_target)
 
-# async def background_task():
-#     now = datetime.utcnow()
-#     print(now)
-#     if now.time() > WHEN:  # Make sure loop doesn't start after {WHEN} as then it will send immediately the first time as negative seconds will make the sleep yield instantly
-#         tomorrow = datetime.combine(now.date() + timedelta(days=1), time(0))
-#         seconds = (tomorrow - now).total_seconds()  # Seconds until tomorrow (midnight)
-#         await asyncio.sleep(seconds)   # Sleep until tomorrow and then the loop will start 
-#     while True:
-#         now = datetime.utcnow() # You can do now() or a specific timezone if that matters, but I'll leave it with utcnow
-#         target_time = datetime.combine(now.date(), WHEN)  # 6:00 PM today (In UTC)
-#         seconds_until_target = (target_time - now).total_seconds()
-#         await asyncio.sleep(seconds_until_target)  # Sleep until we hit the target time
-#         await called_once_a_day()  # Call the helper function that sends the message
-#         tomorrow = datetime.combine(now.date() + timedelta(days=1), time(0))
-#         seconds = (tomorrow - now).total_seconds()  # Seconds until tomorrow (midnight)
-#         await asyncio.sleep(seconds)   # Sleep until tomorrow and then the loop will start a new iteration
+bot.loop.create_task(list_guilds())
 
-# target_channel_id = 829325798002393129
 
-# @tasks.loop(hours=24)
-# async def called_once_a_day():
-#     message_channel = bot.get_channel(target_channel_id)
-#     print(f"Got channel {message_channel}")
-#     await message_channel.send(embed=get_schedule())
-
-# @called_once_a_day.before_loop
-# async def before():
-#     await bot.wait_until_ready()
-#     print("Finished waiting")
-
-# called_once_a_day.start()
+# print the active bot details to console 
+@bot.event
+async def on_ready():
+    messageinterval = INTERVAL
+    messagechannel = CHANNEL
+    messagecontent = MESSAGE
+    # you can customize the output message(s) below
+    print('Message sent every: ' + str(messageinterval) + ' sec.')
+    print('Destination channel id: ' + str(messagechannel))
+    print('Message content: ' + str(messagecontent))
+    bot.loop.create_task(send_interval_message())
 
 def get_schedule():
+    # Names from https://weathernews.jp/wnl/caster/
     newscasters = {
     'hiyama2018': "Saya Hiyama",
     'yuki': "Yuki Uchida",
-    'matsu': "Matsu",
-    'shirai': "Shirai",
-    'nao': "Nao",
-    'ailin': "Ailin",
-    'komaki2018': "Komaki"
+    'matsu': "Ayaka Matsuyuki",
+    'shirai': "Yukari Shirai",
+    'nao': "Naoko Kakuta",
+    'ailin': "Ailin Yamagishi",
+    'komaki2018': "Yui Komaki",
+    "sayane": "Sayane Egawa",
+    "ayame": "Ayame Muto",
+    "takayama": "Nana Takayama"
     }
     thumbnails = {
     'Saya Hiyama': "https://weathernews.jp/s/topics/img/caster/hiyama2018_m1.jpg",
@@ -117,10 +125,11 @@ def get_schedule():
         # print(strsplit)
 
     
-    embed.add_field(name = 'UTC+9 JPN', value= timestring, inline = True)
-    embed.add_field(name = 'Title', value = titlestring, inline = True)
+    embed.add_field(name = 'Time UTC+9', value= timestring, inline = True)
+    embed.add_field(name = 'News Program', value = titlestring, inline = True)
     embed.add_field(name = 'Newscaster', value = casterstring, inline = True)
-
+    embed.set_thumbnail(url="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Weathernews_logo.svg/1024px-Weathernews_logo.svg.png")
+    embed.set_footer(text='Weather News Schedule | Brought to you by Weather News JP Enthusiasts',icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Weathernews_logo.svg/1024px-Weathernews_logo.svg.png")
     return embed
 
 #https://translate.google.com/translate?hl=&sl=ja&tl=en&u=https://weathernews.jp/s/solive24/timetable.html
@@ -137,3 +146,4 @@ async def schedule(ctx):
     await ctx.send(link)
 # bot.loop.create_task(background_task())
 bot.run(TOKEN)
+
