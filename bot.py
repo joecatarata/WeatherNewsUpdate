@@ -14,7 +14,7 @@ load_dotenv()
 TOKEN = os.getenv('WEATHERBOTTOKEN')
 
 
-INTERVAL = 21600
+INTERVAL = 10800
 CHANNEL = 829244449195294731
 MESSAGE = "Test interval message"
 
@@ -48,9 +48,6 @@ async def send_interval_message():
         print("Now: " + str(now) + " Target time: " + str(target_time) + " Seconds target: " + str(seconds_until_target))
         await asyncio.sleep(interval)
         await schedule(bot.get_channel(channel))
-
-# bot.loop.create_task(list_guilds())
-# print the active bot details to console 
 @bot.event
 async def on_ready():
     messageinterval = INTERVAL
